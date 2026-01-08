@@ -147,3 +147,4 @@ iOSInjectionProject/
 **/GoogleService-Info.plist
 */.env
 **/.env
+*.md
