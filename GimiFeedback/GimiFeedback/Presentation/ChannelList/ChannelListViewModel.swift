@@ -16,9 +16,14 @@ final class ChannelListViewModel: ViewModelable {
   @Published private(set) var isChannelListLoading: Bool = false
   
   private let channelService: ChannelRepository
+  private let feedbackService: FeedbackRepository
   
-  init(channelService: ChannelRepository = ChannelService()) {
+  init(
+    channelService: ChannelRepository = ChannelService(),
+    feedbackService: FeedbackRepository = FeedbackService()
+  ) {
     self.channelService = channelService
+    self.feedbackService = feedbackService
   }
   
   func send(_ action: Action) {
@@ -64,11 +69,12 @@ extension ChannelListViewModel {
     totalFeedbackCount = .zero
     
     for channel in itemList {
-      let feedbackList = try await FirestoreManager.shared.fetch(
-        as: Feedback.self,
-        .feedback,
-        whereFeild: "feedbackChannelID",
-        equalData: channel.id.uuidString)
+//      let feedbackList = try await FirestoreManager.shared.fetch(
+//        as: Feedback.self,
+//        .feedback,
+//        whereFeild: "feedbackChannelID",
+//        equalData: channel.id.uuidString)
+      let feedbackList = try await feedbackService.fetch(channelId: channel.id.uuidString)
       
       result.append(
         FeedbackChannelInfo(
