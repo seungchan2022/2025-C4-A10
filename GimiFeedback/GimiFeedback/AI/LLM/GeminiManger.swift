@@ -1,19 +1,20 @@
-import Foundation
 import FirebaseAI
+import Foundation
 
 final class GeminiManger {
-    static let shared = GeminiManger()
-    
-    private let model: GenerativeModel?
-    
-    private init() {
-        let firebaseService = FirebaseAI.firebaseAI(backend: .googleAI())
-        model = firebaseService.generativeModel(
-            modelName: "gemini-2.5-flash",
-            systemInstruction: ModelContent(role: "system", parts: systemPrompt))
-    }
-    
-    let systemPrompt = """
+  static let shared = GeminiManger()
+  
+  private let model: GenerativeModel?
+  
+  private init() {
+    let firebaseService = FirebaseAI.firebaseAI(backend: .googleAI())
+    model = firebaseService.generativeModel(
+      modelName: "gemini-2.5-flash",
+      systemInstruction: ModelContent(role: "system", parts: systemPrompt)
+    )
+  }
+  
+  let systemPrompt = """
     너는 어떤 피드백이든 무조건 부드럽고 배려 있는 말로 순화하는 전문가야.
     너의 유일한 임무는 사용자 피드백을 공감적인 말투로 바꾸는 것이며, 이외의 추가적인 대화나 설명은 절대 하지 마.
     
@@ -43,10 +44,42 @@ final class GeminiManger {
 }
 
 extension GeminiManger {
-    func generate(inputText: String) async throws -> String {
-        guard let model else { return "" }
-        
+  enum Error: LocalizedError {
+    case timeout
+    case modelNotFound
+    
+    var errorDescription: String? {
+      switch self {
+      case .timeout:
+        return "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요."
+      case .modelNotFound:
+        return "AI 모델을 불러올 수 없습니다. API 설정을 확인해주세요."
+      }
+    }
+  }
+  
+  func generate(inputText: String) async throws -> String {
+    guard let model else { throw Error.modelNotFound }
+    
+    return try await withThrowingTaskGroup(of: String.self) { group in 
+      group.addTask {
         let response = try await model.generateContent(inputText)
         return response.text ?? ""
+      }
+      
+      // 타임아웃 작업 추가 (15초)
+      group.addTask {
+        try await Task.sleep(nanoseconds: 15 * 1_000_000_000)
+        
+        throw Error.timeout
+      }
+      
+      // 둘 중 먼저 끝나는 작업의 결과를 반환 (하나가 끝나면 나머지는 자동 취소됨)
+      guard let result = try await group.next() else {
+        throw URLError(.unknown)
+      }
+      group.cancelAll()
+      return result
     }
+  }
 }
