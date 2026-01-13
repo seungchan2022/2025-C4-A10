@@ -1,8 +1,8 @@
 import FirebaseAI
 import Foundation
 
-final class GeminiManger {
-  static let shared = GeminiManger()
+final class GeminiManager {
+  static let shared = GeminiManager()
   
   private let model: GenerativeModel?
   
@@ -43,7 +43,7 @@ final class GeminiManger {
     
 }
 
-extension GeminiManger {
+extension GeminiManager {
   enum Error: LocalizedError {
     case timeout
     case modelNotFound
