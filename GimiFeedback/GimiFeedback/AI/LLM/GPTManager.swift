@@ -1,5 +1,5 @@
 //
-//  GPTManger.swift
+//  GPTManager.swift
 //  GimiFeedback
 //
 //  Created by 승찬 on 7/28/25.
@@ -7,8 +7,8 @@
 
 import Foundation
 
-final class GPTManger {
-    static let shared = GPTManger()
+final class GPTManager {
+    static let shared = GPTManager()
     
     private init() {}
     
@@ -91,7 +91,7 @@ final class GPTManger {
     }
 }
 
-extension GPTManger {
+extension GPTManager {
     
     /// 요청용 메시지
     struct ChatMessage: Codable {
